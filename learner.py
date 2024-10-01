@@ -8,22 +8,16 @@ class Learner(nn.Module):
     def __init__(self, input_dim=2048, drop_p=0.0):
         super(Learner, self).__init__()
         self.classifier = nn.Sequential(
-            nn.Linear(input_dim, 1024),
+            nn.Linear(input_dim, 512),
             nn.ReLU(),
-            nn.Dropout(drop_p),
-            nn.Linear(1024, 512),
-            nn.ReLU(),
-            nn.Dropout(drop_p),
+            nn.Dropout(0.6),
             nn.Linear(512, 32),
             nn.ReLU(),
-            nn.Dropout(drop_p),
-            nn.Linear(32, 16),
-            nn.ReLU(),
-            nn.Dropout(drop_p),
-            nn.Linear(16, 1),
+            nn.Dropout(0.6),
+            nn.Linear(32, 1),
             nn.Sigmoid()
         )
-        self.drop_p = drop_p
+        self.drop_p = 0.6
         self.weight_init()
         self.vars = nn.ParameterList()
 
@@ -38,16 +32,15 @@ class Learner(nn.Module):
     def forward(self, x, vars=None):
         if vars is None:
             vars = self.vars
+#         print("x.shape : ", x.shape)
+#         print("vars[0].shape : ", vars[0].shape)
+#         print("vars[1].shape : ", vars[1].shape)
         x = F.linear(x, vars[0], vars[1])
         x = F.relu(x)
         x = F.dropout(x, self.drop_p, training=self.training)
         x = F.linear(x, vars[2], vars[3])
         x = F.dropout(x, self.drop_p, training=self.training)
         x = F.linear(x, vars[4], vars[5])
-        x = F.dropout(x, self.drop_p, training=self.training)
-        x = F.linear(x, vars[6], vars[7])
-        x = F.dropout(x, self.drop_p, training=self.training)
-        x = F.linear(x, vars[8], vars[9])
         return torch.sigmoid(x)
 
     def parameters(self):
